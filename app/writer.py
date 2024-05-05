@@ -72,14 +72,12 @@ class PETROSAWriter(object):
                 if('origin' in msg):
                     candle['origin'] = msg['origin']
 
-                if "origin" not in msg and msg["origin"] != "current_klines":
-                    return False
-
                 msg_table = {}
                 msg_table["table"] = table
                 msg_table["data"] = candle
 
-                self.queue.put(msg_table)
+                if(candle['origin'] == "current_klines"):
+                    self.queue.put(msg_table)
         except Exception as e:
             print('Error in writer.py get_mesage()', e)
             pass
