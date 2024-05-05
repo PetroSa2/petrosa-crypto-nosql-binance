@@ -1,0 +1,3 @@
+petrosa
+opentelemetry-distro 
+opentelemetry-exporter-otlp

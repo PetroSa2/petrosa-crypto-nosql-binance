@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petrosa-crypto-nosql-handler
+  namespace: petrosa-apps
+  labels:
+    app: petrosa-crypto-nosql-handler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: petrosa-crypto-nosql-handler
+  template:
+    metadata:
+      labels:
+        app: petrosa-crypto-nosql-handler
+      containers:
+      - name: petrosa-crypto-nosql-handler
+        image: yurisa2/petrosa-crypto-nosql-handler:v0.0.81
+        imagePullPolicy: Always
+        env:
+          - name: OTEL_SERVICE_NAME
+            value: "petrosa-crypto-nosql-handler"
+          - name: VERSION
+            value: "0.0.81"
+        envFrom:
+          - configMapRef:
+              name: petrosa-apps-configmap
+      restartPolicy: Always
