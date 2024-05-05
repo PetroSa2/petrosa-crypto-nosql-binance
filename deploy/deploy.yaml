@@ -16,13 +16,13 @@ spec:
         app: petrosa-crypto-nosql-handler
       containers:
       - name: petrosa-crypto-nosql-handler
-        image: yurisa2/petrosa-crypto-nosql-handler:v0.0.81
+        image: yurisa2/petrosa-crypto-nosql-handler:v0.0.82
         imagePullPolicy: Always
         env:
           - name: OTEL_SERVICE_NAME
             value: "petrosa-crypto-nosql-handler"
           - name: VERSION
-            value: "0.0.81"
+            value: "0.0.82"
         envFrom:
           - configMapRef:
               name: petrosa-apps-configmap

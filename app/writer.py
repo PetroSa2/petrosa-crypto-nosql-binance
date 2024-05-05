@@ -21,13 +21,13 @@ class PETROSAWriter(object):
 
         self.client_mg = mongo.get_client()
         self.mongo_update_obs = 0
-        
+
         opentel.meter.create_observable_gauge(
             opentel.SERVICE_NAME + ".write.mongo.update.single.doc",
             callbacks=[self.send_mongo_update_obs],
             description="Time updating mongo single doc",
         )
-        
+
         opentel.meter.create_observable_gauge(
             opentel.SERVICE_NAME + ".write.gauge.queue.size",
             callbacks=[self.send_queue_size],
@@ -72,6 +72,9 @@ class PETROSAWriter(object):
                 if('origin' in msg):
                     candle['origin'] = msg['origin']
 
+                if "origin" not in msg and msg["origin"] != "current_klines":
+                    return False
+
                 msg_table = {}
                 msg_table["table"] = table
                 msg_table["data"] = candle
@@ -84,7 +87,6 @@ class PETROSAWriter(object):
         self.last_data = time.time()
 
         return True
-
 
     def send_mongo_update_obs(self, options: CallbackOptions) -> Iterable[Observation]:
         yield Observation(
@@ -103,16 +105,19 @@ class PETROSAWriter(object):
             msg_table = self.queue.get()
             # print("message on writer", msg_table)
 
-            future = self.executor.submit(self.update_mongo, msg_table)
+            future = self.executor.submit(self.insert_mongo_ts, msg_table)
             # print("future", future.result())
 
-    @opentel.tracer.start_as_current_span(name=f"{SERVICE_NAME}.PETROSAWriter.update_mongo")
-    def update_mongo(self, candle):
+    @opentel.tracer.start_as_current_span(name=f"{SERVICE_NAME}.PETROSAWriter.insert_mongo_ts")
+    def insert_mongo_ts(self, candle):
         start_time = (time.time_ns() // 1_000_000)
         mg_table = self.client_mg.petrosa_crypto[candle["table"]]
-        result_update = mg_table.update_one({"ticker": candle["data"]['ticker'],
-                             "datetime": candle["data"]['datetime']},
-                            {"$set": candle["data"]}, upsert=True)
+
+        ts_dict = {
+                "metadata": {"ticker": candle["data"]['ticker']},
+                "datetime": candle["data"]['datetime']}
+
+        result_update = mg_table.insert_one({**ts_dict, **candle["data"]})
 
         self.mongo_update_obs = (time.time_ns() // 1_000_000) - start_time
         # print(result_update.raw_result)
