@@ -14,6 +14,7 @@ spec:
     metadata:
       labels:
         app: petrosa-crypto-nosql-handler
+    spec:
       containers:
       - name: petrosa-crypto-nosql-handler
         image: yurisa2/petrosa-crypto-nosql-handler:v0.0.82
